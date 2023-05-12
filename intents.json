@@ -1,0 +1,101 @@
+{
+    "intents": [
+      {
+        "tag": "greeting",
+        "patterns": ["Hi", "Hello", "Hey", "What's up", "Hi there"],
+        "responses": ["Hello! How can I help you today?"]
+      },
+      {
+        "tag": "goodbye",
+        "patterns": ["Bye", "Goodbye", "See ya", "Later", "Adios"],
+        "responses": ["Goodbye! Have a great day!"]
+      },
+      {
+        "tag": "thanks",
+        "patterns": ["Thanks", "Thank you", "Appreciate it", "Thanks a lot"],
+        "responses": ["You're welcome!"]
+      },
+      {
+        "tag": "book_class",
+        "patterns": [
+          "Book a class",
+          "Schedule a class",
+          "Sign up for a class",
+          "Book a yoga class on Wednesday at 6 PM",
+          "Can I sign up for the Pilates class on Friday?",
+          "I want to schedule a spin class for tomorrow morning."
+        ],
+        "responses": [
+          "You're booked for a {class_type} class on {date} at {time}!",
+          "Great! Your {class_type} class is booked for {date} at {time}.",
+          "You're all set for your {class_type} class on {date} at {time}."
+        ],
+        "parameters": [
+          {
+            "name": "class_type",
+            "required": true,
+            "prompts": ["What type of class would you like to book?"]
+          },
+          {
+            "name": "date",
+            "required": true,
+            "prompts": ["What date would you like to book the class for?"]
+          },
+          {
+            "name": "time",
+            "required": true,
+            "prompts": ["What time would you like to book the class for?"]
+          }
+        ]
+      },
+      {
+        "tag": "determine_diet",
+        "patterns": [
+          "I need a diet plan",
+          "Help me with my diet",
+          "What should I eat",
+          "What's a good meal plan for weight loss?"
+        ],
+        "responses": [
+          "Here are some meal plans that might work for you: ...",
+          "We can create a personalized meal plan based on your dietary restrictions and fitness goals. Would you like to provide that information now?"
+        ],
+        "parameters": [
+          {
+            "name": "dietary_restrictions",
+            "required": false,
+            "prompts": "Do you have any dietary restrictions?"
+          },
+          {
+            "name": "goals",
+            "required": false,
+            "prompts": "What are your fitness goals?"
+          }
+        ]
+      },
+      {
+        "tag": "faq",
+        "patterns": [
+          "What are your hours?",
+          "Do you offer personal training?",
+          "What classes do you offer?",
+          "What's the cost of a membership?",
+          "When are your busiest times?"
+        ],
+        "parameters": [
+          {
+            "name": "question",
+            "required": true,
+            "prompts": []
+          }
+        ],
+        "responses": [
+          "We're open from 6 AM to 9 PM on weekdays and 8 AM to 6 PM on weekends.",
+          "Yes, we offer personal training. You can book a session with one of our trainers at the front desk.",
+          "We offer a variety of classes, including yoga, Pilates, spin, and strength training. You can find the full schedule on our website.",
+          "Membership prices vary depending on the length of the contract and the services you choose. Please speak to a staff member for more information.",
+          "Our busiest times are usually in the mornings and evenings on weekdays. If you prefer a quieter gym experience, we recommend coming during off-peak hours."
+        ]
+      }
+    ]
+  }
