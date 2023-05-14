@@ -2,18 +2,69 @@
     "intents": [
       {
         "tag": "greeting",
-        "patterns": ["Hi", "Hello", "Hey", "What's up", "Hi there"],
-        "responses": ["Hello! How can I help you today?"]
+        "patterns": [
+          "Hi", 
+          "Hello", 
+          "Hey", 
+          "What's up", 
+          "Hi there",
+          "Good morning/afternoon/evening",
+          "Greetings",
+          "Nice to see you",
+          "Howdy",
+          "Welcome"
+        ],
+        "responses": [
+          "Hello! How can I help you today?",
+          "Hi there! What can I help you with?",
+          "Hey, how's it going? What brings you here today?",
+          "Welcome! How can I be of service today?",
+          "Hi! Thanks for reaching out. What can I do to help you today?"
+        ]
       },
       {
         "tag": "goodbye",
-        "patterns": ["Bye", "Goodbye", "See ya", "Later", "Adios"],
-        "responses": ["Goodbye! Have a great day!"]
+        "patterns": [
+          "Bye", 
+          "Goodbye", 
+          "See ya", 
+          "Later", 
+          "Adios",
+          "Thanks for your help!",
+          "I appreciate your assistance.",
+          "I'll talk to you soon!",
+          "Bye for now!"
+        ],
+        "responses": [
+          "Goodbye! Have a great day!",
+          "Thanks for chatting! Take care.",
+          "Goodbye! Don't hesitate to reach out if you need anything else.",
+          "Have a good one! It was my pleasure to assist you.",
+          "See you later! Let me know if there's anything else I can do for you.",
+          "Bye for now! Have a great rest of your day."
+        ]
       },
       {
         "tag": "thanks",
-        "patterns": ["Thanks", "Thank you", "Appreciate it", "Thanks a lot"],
-        "responses": ["You're welcome!"]
+        "patterns": [
+          "Thanks", 
+          "Thank you", 
+          "Appreciate it", 
+          "Thanks a lot",
+          "Your help means a lot to me",
+          "I wanted to express my gratitude for your help.",
+          "I'm so grateful for your support."
+        ],
+        "responses": [
+          "You're welcome! It's my pleasure to help.",
+          "No problem! I'm always here to assist you.",
+          "It was my pleasure to be of service. Don't hesitate to reach out if you need anything else.",
+          "You're welcome! I'm glad I could be of assistance.",
+          "Anytime! Let me know if there's anything else I can do for you.",
+          "It's no trouble at all. Helping you is what I'm here for.",
+          "You're welcome! I appreciate your kind words.",
+          "Not a problem at all. I'm happy to help in any way I can."
+        ]
       },
       {
         "tag": "book_class",
@@ -23,54 +74,31 @@
           "Sign up for a class",
           "Book a yoga class on Wednesday at 6 PM",
           "Can I sign up for the Pilates class on Friday?",
-          "I want to schedule a spin class for tomorrow morning."
+          "I want to schedule a spin class for tomorrow morning.",
+          "Can you sign me up",
+          "I want to enroll",
+          "Please book me for",
+          "I would like to reserve a spot"
         ],
         "responses": [
-          "You're booked for a {class_type} class on {date} at {time}!",
-          "Great! Your {class_type} class is booked for {date} at {time}.",
-          "You're all set for your {class_type} class on {date} at {time}."
-        ],
-        "parameters": [
-          {
-            "name": "class_type",
-            "required": true,
-            "prompts": ["What type of class would you like to book?"]
-          },
-          {
-            "name": "date",
-            "required": true,
-            "prompts": ["What date would you like to book the class for?"]
-          },
-          {
-            "name": "time",
-            "required": true,
-            "prompts": ["What time would you like to book the class for?"]
-          }
+          "You're booked for a {class_type} class on {date}!",
+          "Great! Your {class_type} class is booked for {date}.",
+          "You're all set for your {class_type} class on {date}."
         ]
       },
       {
         "tag": "determine_diet",
         "patterns": [
+          "How many calories",
+          "What is the calorie count of",
+          "How many calories",
           "I need a diet plan",
           "Help me with my diet",
           "What should I eat",
           "What's a good meal plan for weight loss?"
         ],
         "responses": [
-          "Here are some meal plans that might work for you: ...",
-          "We can create a personalized meal plan based on your dietary restrictions and fitness goals. Would you like to provide that information now?"
-        ],
-        "parameters": [
-          {
-            "name": "dietary_restrictions",
-            "required": false,
-            "prompts": "Do you have any dietary restrictions?"
-          },
-          {
-            "name": "goals",
-            "required": false,
-            "prompts": "What are your fitness goals?"
-          }
+          "Here are some meal plans that might work for you: ..."
         ]
       },
       {
@@ -81,13 +109,6 @@
           "What classes do you offer?",
           "What's the cost of a membership?",
           "When are your busiest times?"
-        ],
-        "parameters": [
-          {
-            "name": "question",
-            "required": true,
-            "prompts": []
-          }
         ],
         "responses": [
           "We're open from 6 AM to 9 PM on weekdays and 8 AM to 6 PM on weekends.",

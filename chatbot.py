@@ -1,4 +1,12 @@
+# pip3 install nltk
+# pip install mysql.connector
+# pip3 install tensorflow
+#pip3 install tkinter
+# nltk.download() ## download All
+
 import nltk
+import tkinter as tk
+from tkinter import scrolledtext
 from nltk.stem.lancaster import LancasterStemmer
 stemmer = LancasterStemmer()
 import requests
@@ -17,7 +25,6 @@ with open('intents.json') as file:
     data = json.load(file)
 
 # Modify the data to include gym-related intents
-
 words = []
 classes = []
 documents = []
@@ -179,10 +186,6 @@ def determine_diet(dietary_restrictions, goals):
     # Return the meal plans
     return "Here are some meal plans that might work for you:\n{}".format(meal_plans)
 
-# def get_faq_answer(question):
-#     # Retrieve the answer to the user's question from intents.json file from responses array instead of user input by nltk.word_tokenize of the patterns
-#     # Return the answer as a string
-#     return "Here's the answer to your question: ..."
 def get_faq_answer(question):
     # Find the faq intent and retrieve the corresponding response
     faq_intent = next((intent for intent in data['intents'] if intent['tag'] == 'faq'), None)
@@ -212,16 +215,11 @@ def generate_response(model, words, classes, message):
     for intent in data['intents']:
         if intent['tag'] == class_label:
             if intent['tag'] == 'book_class':
-                # class_type = intent['parameters'][1]
-                # date = intent['parameters']['date']
-                # time = intent['parameters']['time']
                 return book_class()
             elif intent['tag'] == 'determine_diet':
-                # dietary_prompts = [param["prompts"] for param in intent['parameters'] if param["name"] == "dietary_restrictions"][0]
-                print("Bot:", "Do you have any dietary restrictions?")
+                print("Bot:", "What is your dietary restrictions?")
                 dietary_restrictions = input("You: ")
 
-                # goals_prompts = [param["prompts"] for param in intent['parameters'] if param["name"] == "goals"][0]
                 print("Bot:", "What are your fitness goals?")
                 goals = input("You: ")
                 return determine_diet(dietary_restrictions, goals)
@@ -232,7 +230,6 @@ def generate_response(model, words, classes, message):
                 return random.choice(responses)
 
 print("Chatbot is running!")
-
 while True:
     message = input("You: ")
     response = generate_response(model, words, classes, message)
