@@ -24,6 +24,19 @@ from datetime import date
 with open('intents.json') as file:
     data = json.load(file)
 
+# Create the main window
+window = tk.Tk()
+window.title("Chatbot")
+
+# Create the chat history text area
+chat_history = scrolledtext.ScrolledText(window, width=60, height=40)
+chat_history.configure(state='disabled')
+chat_history.pack(padx=10, pady=10)
+
+# Create the user input text box
+user_input = tk.Entry(window, width=80)
+user_input.pack(padx=10, pady=10)
+
 # Modify the data to include gym-related intents
 words = []
 classes = []
@@ -87,72 +100,11 @@ database = mysql.connector.connect(
     database="gym_system"
 )
 # Create a cursor object to execute SQL queries
-databaseCursor = database.cursor(dictionary=True)
+database_cursor = database.cursor(dictionary=True)
 
-# Function to insert user data
-def userData():
-    print("Bot : Please Enter your name :")
-    name = input("You: ")
-    print("Bot : Please Enter your phone :")
-    phone = input("You: ")
-    
-    insertUser = "INSERT INTO users (name, phone, created_at, updated_at) VALUES (%s, %s, NOW(), NOW())"
-    val = (name, phone, )
-    databaseCursor.execute(insertUser, val)
-    database.commit()
-    return databaseCursor.lastrowid
-
-#Function to book a class
-def book_class():
-    # return all classes types to user to choose which class he need
-    typesQuery = "SELECT * FROM types"
-    databaseCursor.execute(typesQuery)
-    typesResult = databaseCursor.fetchall()
-    print("Bot : Choose which type you need (answer by number) :-")
-    for type in typesResult:
-        print(type['id'], ": ",type['name'])
-    chosenType = input("You: ")
-
-    #Execute a SELECT query available classes in this type
-    classes = "SELECT * FROM classes WHERE type_id = %s"
-    val = (int(chosenType), )
-    databaseCursor.execute(classes, val)
-    classesResult = databaseCursor.fetchall()
-    print("Bot : Choose which class you need (answer by number) :-")
-    for oneClass in classesResult:
-        print(oneClass['id'], ": ", oneClass['name'], "=> Start Date: ", oneClass['date'])
-    chosenClass = input("You: ")
-
-    # Execute a SELECT query to check if the class is available
-    availableClass = "SELECT * FROM classes WHERE id = %s"
-    val = (int(chosenClass), )
-    databaseCursor.execute(availableClass, val)
-    classResult = databaseCursor.fetchone()
-    
-    #If the class is full, return a message saying it's unavailable
-    if classResult['max_capacity'] == 0:
-        return "Sorry, that class is already full. Please choose a different time or class type."
-    else:
-        print("Bot : There are empty places. If you want to confirm the reservation, Type Yes")
-        userChoice = input("You: ")
-        if(userChoice.lower() == 'yes'):
-            # Create new user and get the id
-            user_id = userData()
-            # Otherwise, decrement the class's capacity and insert a new booking record
-            updateCapacity = "UPDATE classes SET max_capacity = max_capacity - 1 WHERE id = %s"
-            updateCapacityValues = (int(chosenClass), )
-            databaseCursor.execute(updateCapacity, updateCapacityValues)
-
-            createBooking = "INSERT INTO bookings (class_id, user_id, created_at, updated_at) VALUES (%s, %s, NOW(), NOW())"
-            createBookingValues = (int(chosenClass), int(user_id), )
-            databaseCursor.execute(createBooking, createBookingValues)
-
-            database.commit()
-
-            # Return a confirmation message
-            return "You're booked for a {} class on {}!".format(classResult['name'], classResult['date'])
-        else:
-            return "Thank you for dealing with us"
+chat_end = []
+diet = []
+booking = {}
 
 def determine_diet(dietary_restrictions, goals):
     # Set up the API endpoint and headers
@@ -183,6 +135,7 @@ def determine_diet(dietary_restrictions, goals):
         calories = result["nf_calories"]
         meal_plans += "{}: {} calories\n".format(name, calories)
 
+    chat_end.clear()
     # Return the meal plans
     return "Here are some meal plans that might work for you:\n{}".format(meal_plans)
 
@@ -199,9 +152,127 @@ def get_faq_answer(question):
     unrecognized_message += "\n".join(faq_intent['patterns'])
     return unrecognized_message
 
-def generate_response(model, words, classes, message):
+def handle_diet_dietary(message):
+    diet.append(message)
+    chat_end.clear()
+    chat_end.append('goals')
+    return "What are your fitness goals?"
+
+def handle_diet_goals(message):
+    diet.append(message)
+    return determine_diet(diet[0], diet[1])
+
+# Function to check if the value is number or not
+def is_number(value):
+    try:
+        float(value)
+        return True
+    except ValueError:
+        return False
+
+# Function to return all type from database  
+def handle_book_choose_type():
+    # return all classes types to user to choose which class he need
+    types_query = "SELECT * FROM types"
+    database_cursor.execute(types_query)
+    types_result = database_cursor.fetchall()
+    chat_end.clear()
+    chat_end.append('chosen_type')
+    result = ""
+    for type in types_result:
+        result += str(type['id'])+ ": "+type['name'] + "\n"
+    return "Choose which type you need (answer by number) :- \n " + result
+
+# Function to return all classes depends on the chosen type
+def handle_book_choose_class(chosen_type):
+    if(is_number(chosen_type)):
+        booking['type'] = chosen_type
+        #Execute a SELECT query available classes in this type
+        classes = "SELECT * FROM classes WHERE type_id = %s"
+        val = (int(chosen_type), )
+        database_cursor.execute(classes, val)
+        classes_result = database_cursor.fetchall()
+        chat_end.clear()
+        chat_end.append('chosen_class')
+        result = ""
+        for oneClass in classes_result:
+            result += str(oneClass['id'])+": "+ oneClass['name']+"=> Start Date: "+ str(oneClass['date']) + "\n"
+        return "Choose which class you need (answer by number) :- \n " + result
+    else:
+        return "Please Type a valid type number"
+    
+#Function to check the max capacity in the class and take the agreement from the user
+def handle_book_check_capacity(chosen_class):
+    if(is_number(chosen_class)):
+        booking['class'] = chosen_class
+        # Execute a SELECT query to check if the class is available
+        available_class = "SELECT * FROM classes WHERE id = %s"
+        val = (int(chosen_class), )
+        database_cursor.execute(available_class, val)
+        class_result = database_cursor.fetchone()
+
+        if class_result['max_capacity'] == 0:
+            return "Sorry, that class is already full. Please choose a different class type."
+        else:
+            chat_end.clear()
+            chat_end.append('agreement')
+            return "There are empty places. If you want to confirm the reservation, Type Yes"
+
+# Function to get user name
+def handle_book_user_name(agreement):
+    agreement = agreement.lower()
+    if(agreement in ['yes', 'no']):
+        if(agreement == 'yes'):
+            chat_end.clear()
+            chat_end.append('chosen_userName')
+            return "Please Enter your name :"
+        else:
+            chat_end.clear()
+            return "Thank you with spend time with us!"
+    else:
+        return "Please enter valid value ( yes or no )"
+
+# Function to get user phone number
+def handle_book_user_phone(name):
+    booking['name'] = name
+    chat_end.clear()
+    chat_end.append('chosen_userPhone')
+    return "Please Enter your phone :"
+
+# Function to insert user date and book the class
+def handle_book_user_data(phone):
+    # return "user data"
+    insert_user = "INSERT INTO users (name, phone, created_at, updated_at) VALUES (%s, %s, NOW(), NOW())"
+    val = (booking['name'], phone, )
+    database_cursor.execute(insert_user, val)
+    database.commit()
+    user_id = database_cursor.lastrowid
+
+    # Execute a SELECT query to check if the class is available
+    available_class = "SELECT * FROM classes WHERE id = %s"
+    val = (int(booking['class']), )
+    database_cursor.execute(available_class, val)
+    class_result = database_cursor.fetchone()
+
+    # Otherwise, decrement the class's capacity and insert a new booking record
+    update_capacity = "UPDATE classes SET max_capacity = max_capacity - 1 WHERE id = %s"
+    update_capacity_values = (int(booking['class']), )
+    database_cursor.execute(update_capacity, update_capacity_values)
+
+    create_booking = "INSERT INTO bookings (class_id, user_id, created_at, updated_at) VALUES (%s, %s, NOW(), NOW())"
+    create_booking_values = (int(booking['class']), int(user_id), )
+    database_cursor.execute(create_booking, create_booking_values)
+
+    database.commit()
+    chat_end.clear()
+    # Return a confirmation message
+    book_class_intent = next((intent for intent in data['intents'] if intent['tag'] == 'book_class'), None)
+    return random.choice(book_class_intent['responses']).format(class_type=class_result['name'], date=class_result['date'])
+
+# Function to predict the class for a given sentence
+def predict_class(sentence):
     # Tokenize and stem the message
-    message_words = nltk.word_tokenize(message)
+    message_words = nltk.word_tokenize(sentence)
     message_words = [stemmer.stem(w.lower()) for w in message_words]
     
     # Create a bag of words representation of the message
@@ -210,27 +281,75 @@ def generate_response(model, words, classes, message):
     # Use the model to predict the class of the message
     prediction = model.predict(np.array([bag]))[0]
     max_index = np.argmax(prediction)
-    class_label = classes[max_index]
+    return classes[max_index]
+
+# Function to return random response from tag
+def random_responses(tag):
+    responses = next((intent for intent in data['intents'] if intent['tag'] == tag), None)
+    return random.choice(responses['responses'])
+
+# Function to generate the bot response
+def generate_response(message):
+    class_label = predict_class(message)
+
     # Choose a random response from the appropriate class
     for intent in data['intents']:
         if intent['tag'] == class_label:
-            if intent['tag'] == 'book_class':
-                return book_class()
+            if intent['tag'] == 'greeting':
+                return random_responses('greeting')
+            elif intent['tag'] == 'goodbye':
+                return random_responses('goodbye')
+            elif intent['tag'] == 'book_class':
+                return handle_book_choose_type()
             elif intent['tag'] == 'determine_diet':
-                print("Bot:", "What is your dietary restrictions?")
-                dietary_restrictions = input("You: ")
-
-                print("Bot:", "What are your fitness goals?")
-                goals = input("You: ")
-                return determine_diet(dietary_restrictions, goals)
+                chat_end.append('dietary')
+                return "What is your dietary restrictions?"
             elif intent['tag'] == 'faq':
                 return get_faq_answer(message)
+            elif intent['tag'] == 'thanks':
+                return random_responses('thanks')
             else:
-                responses = intent['responses']
-                return random.choice(responses)
+                faq_intent = next((intent for intent in data['intents'] if intent['tag'] == 'faq'), None)
+                # If no match is found, display a message to the user
+                unrecognized_message = "I'm sorry, I didn't understand your question. Here are some common questions you can ask:\n"
+                unrecognized_message += "\n".join(faq_intent['patterns'])
+                return unrecognized_message
 
-print("Chatbot is running!")
-while True:
-    message = input("You: ")
-    response = generate_response(model, words, classes, message)
-    print("Bot:", response)
+# Function to handle bot response with the GUI
+def handle_input():
+    # Get the user's input
+    message = user_input.get()
+    if message.strip():
+        # Generate a response from the chatbot
+        if('dietary' in chat_end):
+            response = handle_diet_dietary(message)
+        elif('goals' in chat_end):
+            response = handle_diet_goals(message)
+        elif('chosen_type' in chat_end):
+            response = handle_book_choose_class(message)
+        elif('chosen_class' in chat_end):
+            response = handle_book_check_capacity(message)
+        elif('agreement' in chat_end):
+            response = handle_book_user_name(message)
+        elif('chosen_userName' in chat_end):
+            response = handle_book_user_phone(message)
+        elif('chosen_userPhone' in chat_end):
+            response = handle_book_user_data(message)
+        else:
+            response = generate_response(message)
+
+        # Display the response in the chat history
+        chat_history.configure(state='normal')
+        chat_history.insert(tk.END, "You: " + message + "\n")
+        chat_history.insert(tk.END, "Bot: " + str(response) + "\n")
+        chat_history.configure(state='disabled')
+
+        # Clear the user's input
+        user_input.delete(0, tk.END)
+
+# Create the send button
+send_button = tk.Button(window, text="Send", command=handle_input)
+send_button.pack(padx=10, pady=10)
+
+# Start the main event loop
+window.mainloop()
