@@ -26,7 +26,7 @@ with open('intents.json') as file:
 
 # Create the main window
 window = tk.Tk()
-window.title("Chatbot")
+window.title("Gym assistant chatbot")
 
 # Create the chat history text area
 chat_history = scrolledtext.ScrolledText(window, width=60, height=40)
